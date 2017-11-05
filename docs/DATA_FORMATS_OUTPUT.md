@@ -11,6 +11,7 @@ plugins.
 1. [MessagePack](/plugins/serializers/msgpack)
 1. [Prometheus](/plugins/serializers/prometheus)
 1. [Prometheus Remote Write](/plugins/serializers/prometheusremotewrite)
+1. [Protocol Buffers](/plugins/serializers/protobuf)
 1. [ServiceNow Metrics](/plugins/serializers/nowmetric)
 1. [SplunkMetric](/plugins/serializers/splunkmetric)
 1. [Wavefront](/plugins/serializers/wavefront)

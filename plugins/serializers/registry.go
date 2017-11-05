@@ -13,6 +13,7 @@ import (
 	"github.com/influxdata/telegraf/plugins/serializers/nowmetric"
 	"github.com/influxdata/telegraf/plugins/serializers/prometheus"
 	"github.com/influxdata/telegraf/plugins/serializers/prometheusremotewrite"
+	"github.com/influxdata/telegraf/plugins/serializers/protobuf"
 	"github.com/influxdata/telegraf/plugins/serializers/splunkmetric"
 	"github.com/influxdata/telegraf/plugins/serializers/wavefront"
 )
@@ -105,6 +106,9 @@ type Config struct {
 	// Output string fields as metric labels; when false string fields are
 	// discarded.
 	PrometheusStringAsLabel bool `toml:"prometheus_string_as_label"`
+
+	// PrependLength to prepend result data length for formats that can not be delimited by them selves.
+	PrependLength bool `toml:"prepend_length`
 }
 
 // NewSerializer a Serializer interface based on the given config.
@@ -112,26 +116,28 @@ func NewSerializer(config *Config) (Serializer, error) {
 	var err error
 	var serializer Serializer
 	switch config.DataFormat {
-	case "influx":
-		serializer, err = NewInfluxSerializerConfig(config)
-	case "graphite":
-		serializer, err = NewGraphiteSerializer(config.Prefix, config.Template, config.GraphiteTagSupport, config.GraphiteSeparator, config.Templates)
-	case "json":
-		serializer, err = NewJSONSerializer(config.TimestampUnits)
-	case "splunkmetric":
-		serializer, err = NewSplunkmetricSerializer(config.HecRouting, config.SplunkmetricMultiMetric)
-	case "nowmetric":
-		serializer, err = NewNowSerializer()
 	case "carbon2":
 		serializer, err = NewCarbon2Serializer(config.Carbon2Format)
-	case "wavefront":
-		serializer, err = NewWavefrontSerializer(config.Prefix, config.WavefrontUseStrict, config.WavefrontSourceOverride)
+	case "graphite":
+		serializer, err = NewGraphiteSerializer(config.Prefix, config.Template, config.GraphiteTagSupport, config.GraphiteSeparator, config.Templates)
+	case "influx":
+		serializer, err = NewInfluxSerializerConfig(config)
+	case "json":
+		serializer, err = NewJSONSerializer(config.TimestampUnits)
+	case "msgpack":
+		serializer, err = NewMsgpackSerializer()
+	case "nowmetric":
+		serializer, err = NewNowSerializer()
 	case "prometheus":
 		serializer, err = NewPrometheusSerializer(config)
 	case "prometheusremotewrite":
 		serializer, err = NewPrometheusRemoteWriteSerializer(config)
-	case "msgpack":
-		serializer, err = NewMsgpackSerializer()
+	case "protobuf":
+		serializer, err = NewProtobufSerializer(config.PrependLength)
+	case "splunkmetric":
+		serializer, err = NewSplunkmetricSerializer(config.HecRouting, config.SplunkmetricMultiMetric)
+	case "wavefront":
+		serializer, err = NewWavefrontSerializer(config.Prefix, config.WavefrontUseStrict, config.WavefrontSourceOverride)
 	default:
 		err = fmt.Errorf("Invalid data format: %s", config.DataFormat)
 	}
@@ -246,4 +252,8 @@ func NewGraphiteSerializer(prefix, template string, tagSupport bool, separator s
 
 func NewMsgpackSerializer() (Serializer, error) {
 	return msgpack.NewSerializer(), nil
+}
+
+func NewProtobufSerializer(prependLength bool) (Serializer, error) {
+	return &protobuf.Serializer{PrependLength: prependLength}, nil
 }

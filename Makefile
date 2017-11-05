@@ -166,6 +166,11 @@ clean:
 	rm -f telegraf.exe
 	rm -rf build
 
+.PHONY: gen-proto
+gen-proto:
+	go install google.golang.org/protobuf/cmd/protoc-gen-go
+	protoc -I=./ --go_out=./ --go_opt=paths=source_relative plugins/serializers/protobuf/metric.proto
+
 .PHONY: docker-image
 docker-image:
 	docker build -f scripts/buster.docker -t "telegraf:$(commit)" .
